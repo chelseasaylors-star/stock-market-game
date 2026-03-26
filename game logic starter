@@ -11,7 +11,91 @@ let round = 1;
 let totalRounds = 12;
 let crashRound = Math.floor(Math.random() * 5) + 8; // hidden crash week
 let tickerInterval;
-let timelineData = [];
+let timelineData = [// --- Timeline Chart Functions ---
+let ctx, chartWidth, chartHeight;
+
+function initTimelineChart(){
+  const canvas = document.getElementById("timeline-chart");
+  ctx = canvas.getContext("2d");
+  chartWidth = canvas.width;
+  chartHeight = canvas.height;
+  drawChart();
+}
+
+function drawChart(){
+  ctx.clearRect(0, 0, chartWidth, chartHeight);
+  const padding = 30;
+  const rounds = timelineData.length;
+  if(rounds === 0) return;
+
+  // Find max price for scaling
+  let maxPrice = Math.max(...timelineData.flat());
+
+  stocks.forEach((s, idx) => {
+    ctx.beginPath();
+    ctx.strokeStyle = ["red","blue","green","orange","purple"][idx%5];
+    timelineData.forEach((roundData, r)=>{
+      let x = padding + r * ((chartWidth - 2*padding)/totalRounds);
+      let y = chartHeight - padding - (roundData[idx]/maxPrice)*(chartHeight - 2*padding);
+      if(r===0) ctx.moveTo(x,y);
+      else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    // Stock label
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fillText(s.name, chartWidth - padding, chartHeight - padding - (stocks[idx].price/maxPrice)*(chartHeight - 2*padding));
+  });
+
+  // Axes
+  ctx.strokeStyle = "#000";
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, chartHeight - padding);
+  ctx.lineTo(chartWidth - padding, chartHeight - padding);
+  ctx.stroke();
+}
+
+// --- Update drawChart each round ---
+function nextRoundMaster(){
+  if(round > totalRounds){
+    alert("Game over!");
+    clearInterval(tickerInterval);
+    return;
+  }
+
+  // Stock price random fluctuation
+  stocks.forEach(s=>{
+    s.price *= (1 + (Math.random()*s.volatility*2 - s.volatility));
+  });
+
+  // Trigger crash
+  if(round === crashRound){
+    stocks.forEach(s=>s.price *= 0.5);
+    addNews("The stock market crashes! All stocks lose 50%!");
+  } else {
+    let event = randomEvent();
+    if(event.stock==="ALL"){
+      stocks.forEach(s=>s.price*=(1+event.change));
+    } else {
+      let stk = stocks.find(s=>s.name===event.stock);
+      stk.price*=(1+event.change);
+    }
+    addNews(event.text);
+  }
+
+  updateTicker();
+  updateLeaderboard();
+  timelineData.push(stocks.map(s=>s.price));
+  drawChart();
+  round++;
+  setTimeout(nextRoundMaster, 5000);
+}
+
+// Initialize chart on Master Display load
+if(document.getElementById("timeline-chart")){
+  initTimelineChart();
+}];
 
 // --- Utility Functions ---
 function randomEvent() {
