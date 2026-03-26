@@ -1,0 +1,8 @@
+stock-market-game/
+│
+├── index.html        ← Master Display (projector)
+├── team.html         ← Team Player Screen
+├── style.css         ← Shared CSS for both screens
+├── script.js         ← Game logic, events, crash
+├── qr-codes/         ← Optional folder to store pre-generated QR codes
+└── README.md         ← Deployment instructions
