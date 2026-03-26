@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Screen</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Roaring 20s: Your Portfolio</h1>
+  </header>
+
+  <section id="team-info">
+    <h2 id="team-name">Team </h2>
+    <p>Cash: $<span id="cash">10000</span></p>
+  </section>
+
+  <section id="market">
+    <h2>Available Stocks</h2>
+    <div id="stock-list"></div>
+  </section>
+
+  <section id="portfolio">
+    <h2>Your Portfolio</h2>
+    <div id="portfolio-list"></div>
+  </section>
+
+  <section id="actions">
+    <h2>Action Log</h2>
+    <ul id="action-log"></ul>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
