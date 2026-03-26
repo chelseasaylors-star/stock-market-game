@@ -9,29 +9,189 @@ let stocks = [
 ];
 let round = 1;
 let totalRounds = 12;
-let crashRound = Math.floor(Math.random() * 5) + 8; // hidden crash between week 8-12
+let crashRound = Math.floor(Math.random() * 5) + 8; // hidden crash week
+let tickerInterval;
+let timelineData = [];
 
-// Utility
+// --- Utility Functions ---
 function randomEvent() {
   const events = [
     {text: "Auto sales boom! AutoCorp +10%", stock:"AutoCorp", change: 0.1},
     {text: "Banking scandal! BankTrust -15%", stock:"BankTrust", change: -0.15},
-    {text: "New housing craze! RealEstateInc +8%", stock:"RealEstateInc", change:0.08},
+    {text: "Housing craze! RealEstateInc +8%", stock:"RealEstateInc", change:0.08},
     {text: "Market jitters, overall -5%", stock:"ALL", change:-0.05}
   ];
   return events[Math.floor(Math.random()*events.length)];
 }
 
-// Master Screen Functions
+// --- Master Display Functions ---
 function startGameMaster() {
-  const numTeams = parseInt(document.getElementById("numTeams").value);
-  totalRounds = parseInt(document.getElementById("numRounds").value);
+  const numTeamsInput = document.getElementById("numTeams");
+  const roundsInput = document.getElementById("numRounds");
+  const numTeams = parseInt(numTeamsInput.value);
+  totalRounds = parseInt(roundsInput.value);
+
   teams = [];
-  for (let i=1;i<=numTeams;i++){
+  for(let i=1;i<=numTeams;i++){
     teams.push({id:i, name:"Team "+i, cash:10000, portfolio:{}, netWorth:10000});
   }
+
+  updateTicker();
+  updateLeaderboard();
+  nextRoundMaster();
   alert(`Game started with ${numTeams} teams for ${totalRounds} weeks!`);
 }
 
-// TODO: Add functions for updating ticker, news feed, leaderboard, timeline
-// TODO: Add functions for team screens: buy/sell/hold, update portfolio, log actions
+function updateTicker() {
+  const tickerDiv = document.getElementById("ticker-scroll");
+  tickerDiv.innerHTML = stocks.map(s=>`${s.name}: $${s.price.toFixed(2)}`).join(" | ");
+}
+
+function updateLeaderboard() {
+  const list = document.getElementById("leaderboard-list");
+  teams.forEach(team => {
+    let portfolioValue = Object.keys(team.portfolio).reduce((sum, stock)=>{
+      let stk = stocks.find(s=>s.name===stock);
+      return sum + (stk.price*team.portfolio[stock]);
+    },0);
+    team.netWorth = team.cash + portfolioValue;
+  });
+
+  teams.sort((a,b)=>b.netWorth-a.netWorth);
+  list.innerHTML = teams.map(t=>`<li>${t.name}: $${t.netWorth.toFixed(2)}</li>`).join("");
+}
+
+function nextRoundMaster() {
+  if(round > totalRounds){
+    alert("Game over!");
+    clearInterval(tickerInterval);
+    return;
+  }
+
+  // Stock price random fluctuation
+  stocks.forEach(s=>{
+    s.price *= (1 + (Math.random()*s.volatility*2 - s.volatility));
+  });
+
+  // Trigger crash
+  if(round === crashRound){
+    stocks.forEach(s=>s.price *= 0.5);
+    addNews("The stock market crashes! All stocks lose 50%!");
+  } else {
+    let event = randomEvent();
+    if(event.stock==="ALL"){
+      stocks.forEach(s=>s.price*=(1+event.change));
+    } else {
+      let stk = stocks.find(s=>s.name===event.stock);
+      stk.price*=(1+event.change);
+    }
+    addNews(event.text);
+  }
+
+  updateTicker();
+  updateLeaderboard();
+  timelineData.push(stocks.map(s=>s.price));
+  round++;
+  setTimeout(nextRoundMaster, 5000); // auto next round every 5 sec
+}
+
+function addNews(text){
+  const feed = document.getElementById("news-feed");
+  let li = document.createElement("li");
+  li.innerText = text;
+  feed.prepend(li);
+}
+
+// --- Team Screen Functions ---
+function getTeamId(){
+  const params = new URLSearchParams(window.location.search);
+  return parseInt(params.get("team")) || 1;
+}
+
+let teamId = getTeamId();
+let team = {id:teamId, name:"Team "+teamId, cash:10000, portfolio:{}, netWorth:10000};
+
+function initTeamScreen(){
+  document.getElementById("team-name").innerText = team.name;
+  renderStocks();
+  renderPortfolio();
+  updateCash();
+}
+
+function renderStocks(){
+  const stockList = document.getElementById("stock-list");
+  stockList.innerHTML = "";
+  stocks.forEach(s=>{
+    let div = document.createElement("div");
+    div.className = "stock-card";
+    div.innerHTML = `
+      <h3>${s.name}</h3>
+      <p>Price: $${s.price.toFixed(2)}</p>
+      <button onclick="buyStock('${s.name}')">Buy</button>
+      <button onclick="sellStock('${s.name}')">Sell</button>
+    `;
+    stockList.appendChild(div);
+  });
+}
+
+function renderPortfolio(){
+  const portfolioDiv = document.getElementById("portfolio-list");
+  portfolioDiv.innerHTML = "";
+  Object.keys(team.portfolio).forEach(stock=>{
+    let div = document.createElement("div");
+    div.className = "portfolio-card";
+    div.innerHTML = `
+      <h3>${stock}</h3>
+      <p>Shares: ${team.portfolio[stock]}</p>
+      <p>Value: $${(team.portfolio[stock]*stocks.find(s=>s.name===stock).price).toFixed(2)}</p>
+    `;
+    portfolioDiv.appendChild(div);
+  });
+}
+
+function updateCash(){
+  document.getElementById("cash").innerText = team.cash.toFixed(2);
+}
+
+function logAction(text){
+  const log = document.getElementById("action-log");
+  let li = document.createElement("li");
+  li.innerText = text;
+  log.prepend(li);
+}
+
+function buyStock(stockName){
+  let stk = stocks.find(s=>s.name===stockName);
+  if(team.cash >= stk.price){
+    team.cash -= stk.price;
+    team.portfolio[stockName] = (team.portfolio[stockName] || 0) + 1;
+    renderPortfolio();
+    updateCash();
+    logAction(`Bought 1 share of ${stockName} at $${stk.price.toFixed(2)}`);
+  } else {
+    alert("Not enough cash!");
+  }
+}
+
+function sellStock(stockName){
+  if(team.portfolio[stockName] > 0){
+    let stk = stocks.find(s=>s.name===stockName);
+    team.cash += stk.price;
+    team.portfolio[stockName]--;
+    if(team.portfolio[stockName] === 0) delete team.portfolio[stockName];
+    renderPortfolio();
+    updateCash();
+    logAction(`Sold 1 share of ${stockName} at $${stk.price.toFixed(2)}`);
+  } else {
+    alert("No shares to sell!");
+  }
+}
+
+// --- Initialize ---
+if(document.getElementById("team-name")){
+  initTeamScreen();
+}
+
+if(document.getElementById("startGame")){
+  document.getElementById("startGame").addEventListener("click", startGameMaster);
+}
