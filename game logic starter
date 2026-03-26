@@ -1,0 +1,37 @@
+// Shared Game Data
+let teams = [];
+let stocks = [
+  {name: "AutoCorp", price: 100, volatility: 0.05},
+  {name: "RailWorks", price: 80, volatility: 0.03},
+  {name: "BankTrust", price: 120, volatility: 0.04},
+  {name: "RealEstateInc", price: 90, volatility: 0.06},
+  {name: "ConsumerGoods", price: 70, volatility: 0.05}
+];
+let round = 1;
+let totalRounds = 12;
+let crashRound = Math.floor(Math.random() * 5) + 8; // hidden crash between week 8-12
+
+// Utility
+function randomEvent() {
+  const events = [
+    {text: "Auto sales boom! AutoCorp +10%", stock:"AutoCorp", change: 0.1},
+    {text: "Banking scandal! BankTrust -15%", stock:"BankTrust", change: -0.15},
+    {text: "New housing craze! RealEstateInc +8%", stock:"RealEstateInc", change:0.08},
+    {text: "Market jitters, overall -5%", stock:"ALL", change:-0.05}
+  ];
+  return events[Math.floor(Math.random()*events.length)];
+}
+
+// Master Screen Functions
+function startGameMaster() {
+  const numTeams = parseInt(document.getElementById("numTeams").value);
+  totalRounds = parseInt(document.getElementById("numRounds").value);
+  teams = [];
+  for (let i=1;i<=numTeams;i++){
+    teams.push({id:i, name:"Team "+i, cash:10000, portfolio:{}, netWorth:10000});
+  }
+  alert(`Game started with ${numTeams} teams for ${totalRounds} weeks!`);
+}
+
+// TODO: Add functions for updating ticker, news feed, leaderboard, timeline
+// TODO: Add functions for team screens: buy/sell/hold, update portfolio, log actions
