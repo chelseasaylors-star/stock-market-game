@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roaring 20s: Master Display</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Roaring 20s: Boom & Bust</h1>
+  </header>
+
+  <section id="controls">
+    <label>Number of Teams: <input type="number" id="numTeams" value="4" min="2" max="6"></label>
+    <label>Number of Weeks: <input type="number" id="numRounds" value="12" min="10" max="15"></label>
+    <button id="startGame">Start Game</button>
+  </section>
+
+  <section id="ticker">
+    <h2>Stock Ticker</h2>
+    <div id="ticker-scroll"></div>
+  </section>
+
+  <section id="news">
+    <h2>News Feed</h2>
+    <ul id="news-feed"></ul>
+  </section>
+
+  <section id="leaderboard">
+    <h2>Leaderboard</h2>
+    <ul id="leaderboard-list"></ul>
+  </section>
+
+  <section id="timeline">
+    <h2>Market Timeline</h2>
+    <canvas id="timeline-chart" width="800" height="200"></canvas>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
