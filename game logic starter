@@ -158,9 +158,11 @@ function nextRoundMaster() {
   });
 
   // Trigger crash
-  if(round === crashRound){
-    stocks.forEach(s=>s.price *= 0.5);
-    addNews("The stock market crashes! All stocks lose 50%!");
+ if(round === crashRound){
+  stocks.forEach(s=>s.price *= 0.5);
+  addNews("🚨 BLACK TUESDAY: The stock market collapses! Panic selling begins!");
+  alert("🚨 BLACK TUESDAY 🚨\nThe market has crashed!");
+}
   } else {
     let event = randomEvent();
     if(event.stock==="ALL"){
